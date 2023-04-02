@@ -1,5 +1,5 @@
-mycongig.py
+myconfig.py
 /parser/Data/
-__pycache__
+__pycache__/
 /parser/chromedriver
 
