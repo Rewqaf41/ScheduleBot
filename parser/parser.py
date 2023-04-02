@@ -47,21 +47,26 @@ rows = table.find_elements(By.TAG_NAME, 'tr')
 for row in rows:
     cells = row.find_elements(By.TAG_NAME, 'td')
     for cell in cells:
-        bg_color = cell.value_of_css_property('background-color')
-        if bg_color == 'rgba(251, 219, 105, 1)':
-            location = cell.location
-            size = cell.size
-            y1 = location['y'] 
-            y2 = location['y'] + size['height'] 
         if cell.text == 'нед':
             location = cell.location
             x0 = location['x']
-            y0 = location['y'] 
-        elif cell.text == 'Четверг':
-            location = cell.location
-            size = cell.size
-            x1 = location['x'] 
-            x2 = location['x'] + size['width'] 
+            y0 = location['y']
+
+        bg_color = cell.value_of_css_property('background-color')
+        
+        if bg_color == 'rgba(251, 219, 105, 1)':
+            if cell.text == '1' or cell.text == '2':
+                location = cell.location
+                size = cell.size
+                y1 = location['y'] 
+                y2 = location['y'] + size['height'] 
+            else:
+                location = cell.location
+                size = cell.size
+                x1 = location['x'] 
+                x2 = location['x'] + size['width'] 
+         
+        
 
 image = Image.open("Data/schedule.png").convert('RGBA')
 screenshot_loc = table.location
