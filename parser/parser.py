@@ -51,9 +51,14 @@ for row in rows:
             location = cell.location
             x0 = location['x']
             y0 = location['y']
+        elif cell.text == 'Время':
+            location = cell.location
+            size = cell.size
+            time_x1 = location['x']
+            time_x2 = location['x'] + size['width']
 
         bg_color = cell.value_of_css_property('background-color')
-        
+
         if bg_color == 'rgba(251, 219, 105, 1)':
             if cell.text == '1' or cell.text == '2':
                 location = cell.location
@@ -65,6 +70,11 @@ for row in rows:
                 size = cell.size
                 x1 = location['x'] 
                 x2 = location['x'] + size['width'] 
+        elif cell.text == 'Вторник':
+            location = cell.location
+            size = cell.size
+            x1 = location['x']
+            x2 = location['x'] + size['width']
          
         
 
@@ -74,9 +84,29 @@ x1 = int((x1 - 45) * 0.72)
 x2 = int((x2 - 45) * 0.72)
 y1 = int((y1 - screenshot_loc['y'])*0.72)
 y2 = int((y2 - screenshot_loc['y'])*0.72)
+time_x1 = int((time_x1 - 45) * 0.72)
+time_x2 = int((time_x2 - 45) * 0.72)
 
 cropped_image = image.crop((x1, y1, x2, y2))
-cropped_image.save("Data/res.png")
+cropped_image_time = image.crop((time_x1, y1, time_x2, y2))
+cropped_image.save('Data/crop.png')
+cropped_image_time.save('Data/crop_time.png')
+
+
+image_width = cropped_image_time.width + cropped_image.width
+image_height = cropped_image_time.height
+
+# Создание нового изображения
+res = Image.new('RGBA', (image_width, image_height))
+
+# Копирование cropped_image_time в левую часть изображения
+res.paste(cropped_image_time, (0, 0))
+
+# Копирование cropped_image в правую часть изображения
+res.paste(cropped_image, (cropped_image_time.width, 0))
+
+# Отображение изображения
+res.save('Data/res.png')
 
 driver.close()
 driver.quit()
