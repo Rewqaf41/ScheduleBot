@@ -7,7 +7,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 import os
 import sys
 from PIL import Image
-
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from myconfig import path_to_driver
 
@@ -22,7 +21,15 @@ class Parser():
         self.table = None
         self.sizes = None
 
-    def get_schedule_by_group(self):
+    def get_schedule_on_any_day(self, week, weekday):
+        self.start_driver()
+        self.choose_type_of_search()
+        self.choose_group()
+        self.get_screenshot_of_table()
+        self.select_area_on_any_day(week, weekday)
+        self.create_resoult()
+
+    def get_schedule_today(self):
         self.start_driver()
         self.choose_type_of_search()
         self.choose_group()
@@ -127,6 +134,32 @@ class Parser():
                         size = cell.size
                         x1 = location['x'] 
                         x2 = location['x'] + size['width'] 
+        self.sizes = (x0, y0, x1, y1, x2, y2, time_x1, time_x2)
+
+    def select_area_on_any_day(self, week, weekday):
+        rows = self.table.find_elements(By.TAG_NAME, 'tr')
+        for row in rows:
+            cells = row.find_elements(By.TAG_NAME, 'td')
+            for cell in cells:
+                if cell.text == 'нед':
+                    location = cell.location
+                    x0 = location['x']
+                    y0 = location['y']
+                elif cell.text == 'Время':
+                    location = cell.location
+                    size = cell.size
+                    time_x1 = location['x']
+                    time_x2 = location['x'] + size['width']
+                if cell.text == f'{week}' :
+                    location = cell.location
+                    size = cell.size
+                    y1 = location['y'] 
+                    y2 = location['y'] + size['height'] 
+                elif cell.text == f'{weekday}':
+                    location = cell.location
+                    size = cell.size
+                    x1 = location['x'] 
+                    x2 = location['x'] + size['width'] 
         self.sizes = (x0, y0, x1, y1, x2, y2, time_x1, time_x2)
             
     def create_resoult(self):
