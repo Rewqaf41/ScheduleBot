@@ -12,3 +12,15 @@ menu = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True, one_time_keyboard=True
 )
+
+choice = ReplyKeyboardMarkup(
+    keyboard=[
+        [
+            KeyboardButton(text='🏢Аудитории'),
+            KeyboardButton(text='👨‍🏫Преподавателю'),
+            KeyboardButton(text='📚Группе'),
+
+        ],
+    ],
+    resize_keyboard=True
+)
