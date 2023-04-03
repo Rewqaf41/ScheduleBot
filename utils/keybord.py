@@ -1,4 +1,4 @@
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 
 
 menu = ReplyKeyboardMarkup(
@@ -10,17 +10,18 @@ menu = ReplyKeyboardMarkup(
             KeyboardButton(text='⚙️Настройки')
         ],
     ],
-    resize_keyboard=True, one_time_keyboard=True
+    resize_keyboard=True
 )
 
-choice = ReplyKeyboardMarkup(
-    keyboard=[
+choice = InlineKeyboardMarkup(
+    inline_keyboard=[
         [
-            KeyboardButton(text='🏢Аудитории'),
-            KeyboardButton(text='👨‍🏫Преподавателю'),
-            KeyboardButton(text='📚Группе'),
-
+            KeyboardButton(text='👨‍🏫Преподавателю', callback_data="prepod"),
+            KeyboardButton(text='📚Группе', callback_data="group"),
+        ],
+        [
+            KeyboardButton(text='🏢Аудитории', callback_data="audit"),
         ],
     ],
-    resize_keyboard=True
+    resize_keyboard=True, one_time_keyboard=True
 )
