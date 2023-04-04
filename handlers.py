@@ -16,8 +16,6 @@ class forParser(StatesGroup):
 
 @dp.message_handler(commands=['start'])
 async def start(message: Message):
-    await bot.send_message(chat_id=admin_id, text=f'{message.from_user.first_name} {message.from_user.last_name}')
-    await bot.send_message(chat_id=admin_id, text=message.from_user.id)
     await bot.send_message(chat_id=message.from_user.id, text='Пропишите команду /menu')
 
 
