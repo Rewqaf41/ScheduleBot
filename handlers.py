@@ -1,10 +1,13 @@
-from aiogram.types import Message, CallbackQuery
+import datetime
+
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from utils.keybord import menu, choice
+from aiogram.types import Message, CallbackQuery, InputFile
+
 from main import bot, dp
 from myconfig import admin_id
-import datetime
+from utils.keybord import menu, choice
+from schedule.parser import Parser
 
 
 class forParser(StatesGroup):
@@ -29,7 +32,7 @@ async def show_menu(message: Message):
 @dp.message_handler()
 async def schedule(message: Message, state: FSMContext):
     if datetime.date.today().weekday() == 6:
-       await message.answer(text='Сегодня воскресенье, какие пары, иди поспи')
+       await message.answer(text='Сегодня воскресенье, какие пары🤨, иди поспи😊')
     else:
         if message.text == '🗓Расписание':
             data = await state.get_data()
@@ -44,7 +47,7 @@ async def schedule(message: Message, state: FSMContext):
 
 
 @dp.callback_query_handler(text='audit')
-async def audit(call: CallbackQuery):
+async def audit(call: CallbackQuery, message: Message):
     await call.answer(text='А оно тебе надо?🤔', cache_time=60)
     await call.message.edit_reply_markup()
 
@@ -52,22 +55,25 @@ async def audit(call: CallbackQuery):
 
 
 @dp.callback_query_handler(text='group')
-async def group(call: CallbackQuery):
+async def group(call: CallbackQuery, state: FSMContext):
+    search_type = 'группа'
     await call.message.edit_reply_markup()
     await bot.send_message(chat_id=call.message.chat.id, text='Введите номер группы в формате: "Курс/Группа"\n'
-                           'Пример: 1/244')
+                                                              'Пример: 1/244')
     await forParser.amount.set()
-
     await remove_schedule_message(call.message.chat.id, call.message.message_id)
+    await state.update_data(search_type=search_type)
 
 
 @dp.callback_query_handler(text='prepod')
-async def prepod(call: CallbackQuery):
+async def prepod(call: CallbackQuery, state: FSMContext):
+    search_type = 'препод'
     await call.message.edit_reply_markup()
     await bot.send_message(chat_id=call.message.chat.id, text='Введите фамилию преподавателя в формате: "ФИО"\n')
     await forParser.amount.set()
 
     await remove_schedule_message(call.message.chat.id, call.message.message_id)
+    await state.update_data(search_type=search_type)
 
 
 async def remove_schedule_message(chat_id, message_id):
@@ -81,5 +87,12 @@ async def remove_schedule_message(chat_id, message_id):
 async def load_amount(message: Message, state: FSMContext):
     async with state.proxy() as data:
         data['amount'] = message.text
-        print(data['amount'])
+        search_type = data.get('search_type')
     await state.finish()
+    await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
+    schedule = Parser(search_type, data['amount'], message.from_user.id)
+    schedule.get_schedule_today()
+    photo = InputFile(f'/Users/rewqaf/PycharmProjects/ScheduleBot/schedule/Data/res{message.from_user.id}.png')
+    await bot.send_photo(chat_id=message.from_user.id, photo=photo)
+    msg = await message.answer('Выберите действие:', reply_markup=menu)
+    await state.update_data(menu_message_id=msg.message_id)

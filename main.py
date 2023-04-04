@@ -13,5 +13,5 @@ dp = Dispatcher(bot, storage=storage)
 
 
 if __name__ == '__main__':
-    from handlers.handlers import dp
+    from handlers import dp
     executor.start_polling(dp, skip_updates=False)

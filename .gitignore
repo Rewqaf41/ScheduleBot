@@ -1,5 +1,5 @@
 myconfig.py
-/parser/Data/
+/schedule/Data/
 __pycache__/
-/parser/chromedriver
+/schedule/chromedriver
 

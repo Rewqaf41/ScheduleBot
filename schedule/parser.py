@@ -74,7 +74,7 @@ class Parser():
     def choose_group(self):
         if self.search_type == 'группа':
             self.driver.find_element(By.ID, 'edit-idgr').send_keys(f'{self.amount}')
-            time.sleep(1)
+            time.sleep(6)
             print('[+] 2')
             self.driver.find_element(By.ID, 'edit-idgr').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
             print('[+] 1')
@@ -82,7 +82,7 @@ class Parser():
             time.sleep(1)
         elif self.search_type == 'препод':
             self.driver.find_element(By.ID, 'edit-idprep').send_keys(f'{self.amount}')
-            time.sleep(1)
+            time.sleep(5)
             print('[+] 2')
             self.driver.find_element(By.ID, 'edit-idprep').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
             print('[+] 1')
@@ -90,7 +90,7 @@ class Parser():
             time.sleep(1)
         elif self.search_type == 'аудитория':
             self.driver.find_element(By.ID, 'edit-idaud').send_keys(f'{self.amount}')
-            time.sleep(1)
+            time.sleep(5)
             print('[+] 2')
             self.driver.find_element(By.ID, 'edit-idaud').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
             print('[+] 1')
@@ -106,7 +106,7 @@ class Parser():
         element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'table')))
         self.table = self.driver.find_element(By.TAG_NAME, 'table')
         scroll = self.table.location_once_scrolled_into_view
-        screenshot = self.table.screenshot(f'Data/sch{self.tg_id}.png')
+        screenshot = self.table.screenshot(f'{path_to_driver[:-12]}Data/sch{self.tg_id}.png')
 
     def select_area(self):
         rows = self.table.find_elements(By.TAG_NAME, 'tr')
@@ -171,7 +171,7 @@ class Parser():
         y2 = self.sizes[5]
         time_x1 = self.sizes[6]
         time_x2 = self.sizes[7]
-        image = Image.open(f"Data/sch{self.tg_id}.png").convert('RGBA')
+        image = Image.open(f"{path_to_driver[:-12]}Data/sch{self.tg_id}.png").convert('RGBA')
         screenshot_loc = self.table.location
         x1 = int((x1 - 45) * 0.72)
         x2 = int((x2 - 45) * 0.72)
@@ -186,7 +186,7 @@ class Parser():
         res = Image.new('RGBA', (image_width, image_height))
         res.paste(cropped_image_time, (0, 0))
         res.paste(cropped_image, (cropped_image_time.width, 0))
-        res.save(f'Data/res{self.tg_id}.png')
+        res.save(f'{path_to_driver[:-12]}Data/res{self.tg_id}.png')
 
     def close_driver(self):
         self.driver.close()
