@@ -5,12 +5,13 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery, InputFile
 
 from main import bot, dp
-from myconfig import admin_id
+from config import admin_id
+from config import path_to_project
 from utils.keybord import menu, choice
 from schedule.parser import Parser
 
 
-class forParser(StatesGroup):
+class forParser(StatesGroup): # Классы по PEP пишутся с большой буквы))))))))))))) (Мне лень ещё больше скобок ставить)
     amount = State()
 
 
@@ -44,7 +45,7 @@ async def schedule(message: Message, state: FSMContext):
         await message.answer('Лучше не лезь сюда, тут все-равно ничего нету!)')
 
 
-@dp.callback_query_handler(text='audit')
+@dp.callback_query_handler(text='audit') # нет аргумента сообщение))))
 async def audit(call: CallbackQuery, message: Message):
     await call.answer(text='А оно тебе надо?🤔', cache_time=60)
     await call.message.edit_reply_markup()
@@ -90,7 +91,8 @@ async def load_amount(message: Message, state: FSMContext):
     await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
     schedule = Parser(search_type, data['amount'], message.from_user.id)
     schedule.get_schedule_today()
-    photo = InputFile(f'/Users/rewqaf/PycharmProjects/ScheduleBot/schedule/Data/res{message.from_user.id}.png')
+    photo = InputFile(f'{path_to_project}/schedule/Data/res{message.from_user.id}.png')
     await bot.send_photo(chat_id=message.from_user.id, photo=photo)
     msg = await message.answer('Выберите действие:', reply_markup=menu)
     await state.update_data(menu_message_id=msg.message_id)
+    schedule.delete_cache()
