@@ -21,7 +21,8 @@ class Parser():
         self.tg_id = tg_id
         self.driver = None
         self.table = None
-        self.sizes = None
+        self.sizes = (None, None, None, None, None, None, None, None)
+        print('================================================================================================')
 
 # Черный ящик. Требует пихнуть в него неделю и день недели, затем сохраняет скрин всего расписания и то, что скинет бот
     def get_schedule_on_any_day(self, week, weekday):
@@ -41,13 +42,13 @@ class Parser():
     def get_schedule_today(self):
         self.start_driver()
         self.choose_type_of_search()
-        self.choose_group()
-        self.get_screenshot_of_table()
         try:
-            self.select_area()
-        except AssertionError:
+            self.choose_group()
+        except:
             print('ничего не найдено')
             return False
+        self.get_screenshot_of_table()
+        self.select_area()
         self.create_resoult()
         return True
 
@@ -92,22 +93,23 @@ class Parser():
             self.driver.find_element(By.ID, 'edit-idgr').send_keys(f'{self.amount}')
             time.sleep(1)
             self.driver.find_element(By.ID, 'edit-idgr').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
+            obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
             time.sleep(1)
         elif self.search_type == 'препод':
             self.driver.find_element(By.ID, 'edit-idprep').send_keys(f'{self.amount}')
             time.sleep(1)
             self.driver.find_element(By.ID, 'edit-idprep').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
+            obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
             time.sleep(1)
         elif self.search_type == 'аудитория':
             self.driver.find_element(By.ID, 'edit-idaud').send_keys(f'{self.amount}')
             time.sleep(1)
             self.driver.find_element(By.ID, 'edit-idaud').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
+            obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
             time.sleep(1)
-        else:
-            return 'Ошибка'
 
 # Зумит сайт на 72% и делает скрин
 # Из-за зума качество на выходе мусор, но если не зумить, таблица не влезет. Дилемма...
@@ -150,8 +152,6 @@ class Parser():
                         x1 = location['x'] 
                         x2 = location['x'] + size['width'] 
         self.sizes = (x0, y0, x1, y1, x2, y2, time_x1, time_x2)
-        for i in self.sizes:
-            assert i != None, 'assert'
 
 # То же самое, что и прошлый метод, только ищет не по цвету, а по тексту ячеек
     def select_area_on_any_day(self, week, weekday):
@@ -180,9 +180,7 @@ class Parser():
                     x1 = location['x'] 
                     x2 = location['x'] + size['width'] 
         self.sizes = (x0, y0, x1, y1, x2, y2, time_x1, time_x2)
-        for i in self.sizes:
-            assert i != None
-            
+
 # Открывает скрин, режет его, склеивает время и само расписание. Сохраняет как res<TelegramID>.png
     def create_resoult(self):
         print('try to create your resoult photo')
@@ -213,13 +211,10 @@ class Parser():
 
 # Просто закрывает драйвер и браузер
     def close_driver(self):
-        self.sizes = (None, None, None, None, None, None, None, None)
         self.driver.close()
         self.driver.quit()
         print('Successful!\n\n')
 
-
     def delete_cache(self):
         os.remove(f'{path_to_project}/schedule/Data/res{self.tg_id}.png')
         os.remove(f'{path_to_project}/schedule/Data/sch{self.tg_id}.png')
-
