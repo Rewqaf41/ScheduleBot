@@ -21,20 +21,20 @@ class Parser():
         self.tg_id = tg_id
         self.driver = None
         self.table = None
-        self.sizes = (None, None, None, None, None, None, None, None)
+        self.sizes = None
         print('================================================================================================')
 
 # Черный ящик. Требует пихнуть в него неделю и день недели, затем сохраняет скрин всего расписания и то, что скинет бот
-    def get_schedule_on_any_day(self, week, weekday):
+    def get_schedule_on_any_day(self, week, weekday): # todo: дописать для этого кнопку в боте
         self.start_driver()
         self.choose_type_of_search()
-        self.choose_group()
-        self.get_screenshot_of_table()
         try:
-            self.select_area_on_any_day(week, weekday)
-        except AssertionError:
+            self.choose_group()
+        except:
             print('Ничего не найдено')
             return False
+        self.get_screenshot_of_table()
+        self.select_area_on_any_day(week, weekday)
         self.create_resoult()
         return True
 
@@ -51,6 +51,14 @@ class Parser():
         self.select_area()
         self.create_resoult()
         return True
+
+# Чёрный ящик. Ничего не требует. Отправляет кривой скриншот всей таблицы
+    def get_full_scedule(self): # todo: дописать для этого кнопку в боте
+        self.start_driver()
+        self.choose_type_of_search()
+        self.choose_group()
+        self.get_screenshot_of_table()
+
 
 # Просто подключение к драйверу, возможно стоит пихнуть это в инит
     def start_driver(self):
