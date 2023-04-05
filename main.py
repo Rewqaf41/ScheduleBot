@@ -2,7 +2,7 @@ import logging
 
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from myconfig import TOKEN
+from config import TOKEN
 
 
 logging.basicConfig(level=logging.INFO)
