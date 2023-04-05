@@ -90,9 +90,13 @@ async def load_amount(message: Message, state: FSMContext):
     await state.finish()
     await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
     schedule = Parser(search_type, data['amount'], message.from_user.id)
-    schedule.get_schedule_today()
-    photo = InputFile(f'{path_to_project}/schedule/Data/res{message.from_user.id}.png')
-    await bot.send_photo(chat_id=message.from_user.id, photo=photo)
-    msg = await message.answer('Выберите действие:', reply_markup=menu)
-    await state.update_data(menu_message_id=msg.message_id)
-    schedule.delete_cache()
+    if schedule.get_schedule_today():
+        photo = InputFile(f'{path_to_project}/schedule/Data/res{message.from_user.id}.png')
+        await bot.send_photo(chat_id=message.from_user.id, photo=photo)
+        msg = await message.answer('Выберите действие:', reply_markup=menu)
+        await state.update_data(menu_message_id=msg.message_id)
+        schedule.delete_cache()
+        schedule.close_driver()
+    else:
+        await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено('
+            '\nПроверьте правильность введенных данных. Ну либо сайт хима упал (:')

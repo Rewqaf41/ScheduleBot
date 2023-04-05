@@ -29,8 +29,13 @@ class Parser():
         self.choose_type_of_search()
         self.choose_group()
         self.get_screenshot_of_table()
-        self.select_area_on_any_day(week, weekday)
+        try:
+            self.select_area_on_any_day(week, weekday)
+        except AssertionError:
+            print('Ничего не найдено')
+            return False
         self.create_resoult()
+        return True
 
 # Чёрны ящик. Не требует аргументов(А по нему не видно типа...) Сохраняет скрин расписания и конечную фотку
     def get_schedule_today(self):
@@ -38,8 +43,13 @@ class Parser():
         self.choose_type_of_search()
         self.choose_group()
         self.get_screenshot_of_table()
-        self.select_area()
+        try:
+            self.select_area()
+        except AssertionError:
+            print('ничего не найдено')
+            return False
         self.create_resoult()
+        return True
 
 # Просто подключение к драйверу, возможно стоит пихнуть это в инит
     def start_driver(self):
@@ -140,6 +150,8 @@ class Parser():
                         x1 = location['x'] 
                         x2 = location['x'] + size['width'] 
         self.sizes = (x0, y0, x1, y1, x2, y2, time_x1, time_x2)
+        for i in self.sizes:
+            assert i != None, 'assert'
 
 # То же самое, что и прошлый метод, только ищет не по цвету, а по тексту ячеек
     def select_area_on_any_day(self, week, weekday):
@@ -168,6 +180,8 @@ class Parser():
                     x1 = location['x'] 
                     x2 = location['x'] + size['width'] 
         self.sizes = (x0, y0, x1, y1, x2, y2, time_x1, time_x2)
+        for i in self.sizes:
+            assert i != None
             
 # Открывает скрин, режет его, склеивает время и само расписание. Сохраняет как res<TelegramID>.png
     def create_resoult(self):
@@ -199,9 +213,11 @@ class Parser():
 
 # Просто закрывает драйвер и браузер
     def close_driver(self):
-        print('Successful!\n\n')
+        self.sizes = (None, None, None, None, None, None, None, None)
         self.driver.close()
         self.driver.quit()
+        print('Successful!\n\n')
+
 
     def delete_cache(self):
         os.remove(f'{path_to_project}/schedule/Data/res{self.tg_id}.png')
