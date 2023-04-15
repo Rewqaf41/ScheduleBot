@@ -56,7 +56,11 @@ class Parser():
     def get_full_scedule(self): # todo: дописать для этого кнопку в боте
         self.start_driver()
         self.choose_type_of_search()
-        self.choose_group()
+        try:
+            self.choose_group()
+        except:
+            print('Ничего не найдено')
+            return False
         self.get_screenshot_of_table()
 
 
