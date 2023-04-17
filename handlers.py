@@ -1,11 +1,11 @@
 import datetime
+import os
 
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery, InputFile
 
 from main import bot, dp
-from config import admin_id
 from config import path_to_project
 from utils.keybord import *
 from schedule.parser import Parser
@@ -34,36 +34,32 @@ async def show_menu(message: Message):
 # Хендлер для принятия комманд меню
 @dp.message_handler()
 async def schedule(message: Message, state: FSMContext):
-    if datetime.date.today().weekday() == 6:
-        await message.answer(text='Сегодня воскресенье, какие пары🤨, иди поспи😊')
-    else:
-        if message.text == '🗓Расписание':
-            data = await state.get_data()
-            menu_message_id = data.get('menu_message_id')
-            #Удаление комманды '/menu'
-            if menu_message_id:
-                await bot.delete_message(chat_id=message.chat.id, message_id=menu_message_id)
-            #Возвращение инлайн меню с выбором
-            await message.answer(reply_markup=choice, text='Расписание по')
+    if message.text == '🗓Расписание':
+        data = await state.get_data()
+        menu_message_id = data.get('menu_message_id')
+        #Удаление комманды '/menu'
+        if menu_message_id:
+            await bot.delete_message(chat_id=message.chat.id, message_id=menu_message_id)
+        #Возвращение инлайн меню с выбором
+        await message.answer(reply_markup=choice, text='Расписание по')
 
     if message.text == '⚙️Настройки':
         await message.answer('Лучше не лезь сюда, тут все-равно ничего нету!)')
 
 
-# Инлайн кнопка для аудитории(Кнопка прикол)
-@dp.callback_query_handler(text='audit')    # нет аргумента сообщение))))
-async def audit(call: CallbackQuery):
-    await call.answer(text='А оно тебе надо?🤔', cache_time=60)
-    await call.message.edit_reply_markup()
-
+# Инлайн кнопка для аудитории
+@dp.callback_query_handler(text='audit')
+async def audit(call: CallbackQuery, state: FSMContext):
+    search_type = 'аудитория'
     await remove_schedule_message(call.message.chat.id, call.message.message_id)
+    await state.update_data(search_type=search_type)
+    await today(call, state)
 
 
 # Инлайн кнопка, для группы
 @dp.callback_query_handler(text='group')
 async def group(call: CallbackQuery, state: FSMContext):
     search_type = 'группа'
-    #Вызов машины состояний
     await remove_schedule_message(call.message.chat.id, call.message.message_id)
     await call.message.answer(text='Расписание на сегодня, или другой день?', reply_markup=today_or_any_day)
     #Добавление переменной search_type в машину состояний
@@ -93,6 +89,9 @@ async def today(call: CallbackQuery, state: FSMContext):
         elif data.get('search_type') == 'препод':
             await bot.send_message(chat_id=call.message.chat.id,
                                    text='Введите фамилию преподавателя в формате: "ФИО"\n')
+        elif data.get('search_type') == 'аудитория':
+            await bot.send_message(chat_id=call.message.chat.id,
+                                   text='Введите номер аудитории. Пример: "Г123"\n')
     await ForParser.amount.set()
 
 
@@ -183,6 +182,14 @@ async def saturday(call: CallbackQuery, state: FSMContext):
     await today(call, state)
 
 
+@dp.callback_query_handler(text='full_schedule')
+async def full(call: CallbackQuery, state: FSMContext):
+    all = 'full'
+    await state.update_data(all=all)
+    await remove_schedule_message(call.message.chat.id, call.message.message_id)
+    await today(call, state)
+
+
 #Удаление сообщения бота
 async def remove_schedule_message(chat_id, message_id):
     try:
@@ -204,24 +211,44 @@ async def load_amount(message: Message, state: FSMContext):
     # Вычисляем, если переменные week и weekday возвращают None, вызываем парсер для сегодняшнего дня,
     # иначе парсер для любого дня
     if week is None and weekday is None:
-        await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
-        schedule_today = Parser(search_type, data['amount'], message.from_user.id)
-        if schedule_today.get_schedule_today():
-            photo_today = InputFile(f'{path_to_project}/schedule/Data/res{message.from_user.id}.png')
-            await bot.send_photo(chat_id=message.from_user.id, photo=photo_today)
-            msg_today = await message.answer('Выберите действие:', reply_markup=menu)
-            await state.update_data(menu_message_id=msg_today.message_id)
-            schedule_today.delete_cache()
-            schedule_today.close_driver()
+        if datetime.date.today().weekday() == 6:
+            await message.answer(text='Сегодня воскресенье, какие пары🤨, иди поспи😊')
         else:
-            await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено('
-                                                                      '\nПроверьте правильность введенных данных. Ну либо'
-                                                                      ' сайт хима упал (:')
-            await message.answer('Выберите действие:', reply_markup=menu)
+            if data.get('all') == 'full':
+                await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
+                full_schedule = Parser(search_type, data['amount'], message.from_user.id)
+                if full_schedule.get_full_scedule():
+                    full_photo = InputFile(f'{path_to_project}/schedule/Data/sch{message.from_user.id}.png')
+                    await bot.send_photo(chat_id=message.from_user.id, photo=full_photo)
+                    msg_today = await message.answer('Выберите действие:', reply_markup=menu)
+                    await state.update_data(menu_message_id=msg_today.message_id)
+                    os.remove(f'{path_to_project}/schedule/Data/sch{message.from_user.id}.png')
+                    full_schedule.close_driver()
+                else:
+                    await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено😅'
+                                                                              '\nПроверьте правильность введенных данных🔎.'
+                                                                              '\nНу либо сайт хима упал 😆🫡')
+                    await message.answer('Выберите действие:', reply_markup=menu)
+            else:
+                await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
+                schedule_today = Parser(search_type, data['amount'], message.from_user.id)
+                if schedule_today.get_schedule_today():
+                    photo_today = InputFile(f'{path_to_project}/schedule/Data/res{message.from_user.id}.png')
+                    await bot.send_photo(chat_id=message.from_user.id, photo=photo_today)
+                    msg_today = await message.answer('Выберите действие:', reply_markup=menu)
+                    await state.update_data(menu_message_id=msg_today.message_id)
+                    schedule_today.delete_cache()
+                    schedule_today.close_driver()
+                else:
+                    await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено😅'
+                                                                              '\nПроверьте правильность введенных данных🔎.'
+                                                                              '\nНу либо сайт хима упал 😆🫡')
+                    await message.answer('Выберите действие:', reply_markup=menu)
     else:
         await bot.send_message(chat_id=message.from_user.id, text='Сейчас проверю...')
         schedule_any_day = Parser(search_type, data['amount'], message.from_user.id)
         if schedule_any_day.get_schedule_on_any_day(week, weekday):
+            await bot.send_message(text=f'Расписание: {week} неделя, {weekday}', chat_id=message.from_user.id)
             photo_any_day = InputFile(f'{path_to_project}/schedule/Data/res{message.from_user.id}.png')
             await bot.send_photo(chat_id=message.from_user.id, photo=photo_any_day)
             msg_any_day = await message.answer('Выберите действие:', reply_markup=menu)
@@ -229,7 +256,7 @@ async def load_amount(message: Message, state: FSMContext):
             schedule_any_day.delete_cache()
             schedule_any_day.close_driver()
         else:
-            await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено('
-                                                                      '\nПроверьте правильность введенных данных. Ну либо'
-                                                                      ' сайт хима упал (:')
+            await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено😅'
+                                                                      '\nПроверьте правильность введенных данных🔎.'
+                                                                      '\nНу либо сайт хима упал 😆🫡')
             await message.answer('Выберите действие:', reply_markup=menu)
