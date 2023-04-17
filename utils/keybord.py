@@ -6,9 +6,6 @@ menu = ReplyKeyboardMarkup(
         [
             KeyboardButton(text='🗓Расписание'),
         ],
-        [
-            KeyboardButton(text='⚙️Настройки')
-        ],
     ],
     resize_keyboard=True
 )
@@ -31,6 +28,9 @@ today_or_any_day = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(text='На сегодня', callback_data="today"),
             InlineKeyboardButton(text='На другой день', callback_data="any_day"),
+        ],
+        [
+            InlineKeyboardButton(text='На все недели', callback_data="full_schedule")
         ],
     ],
     resize_keyboard=True, one_time_keyboard=True
