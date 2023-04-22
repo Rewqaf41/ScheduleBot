@@ -22,7 +22,6 @@ class Parser():
         self.driver = None
         self.table = None
         self.sizes = None
-        print('================================================================================================')
 
 # Черный ящик. Требует пихнуть в него неделю и день недели, затем сохраняет скрин всего расписания и то, что скинет бот
     def get_schedule_on_any_day(self, week, weekday): # todo: дописать для этого кнопку в боте
@@ -31,7 +30,6 @@ class Parser():
         try:
             self.choose_group()
         except:
-            print('Ничего не найдено')
             return False
         self.get_screenshot_of_table()
         self.select_area_on_any_day(week, weekday)
@@ -45,7 +43,6 @@ class Parser():
         try:
             self.choose_group()
         except:
-            print('ничего не найдено')
             return False
         self.get_screenshot_of_table()
         self.select_area()
@@ -56,13 +53,16 @@ class Parser():
     def get_full_scedule(self): # todo: дописать для этого кнопку в боте
         self.start_driver()
         self.choose_type_of_search()
-        self.choose_group()
+        try:
+            self.choose_group()
+        except:
+            return False
         self.get_screenshot_of_table()
+        return True
 
 
 # Просто подключение к драйверу, возможно стоит пихнуть это в инит
     def start_driver(self):
-        print('try to open browser')
         options = webdriver.ChromeOptions()
         options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 YaBrowser/23.1.4.778 Yowser/2.5 Safari/537.36")
         options.add_argument('--headless')
@@ -75,56 +75,45 @@ class Parser():
 
 # Ищет нужную кнопку на сайте хима и кликает на неё
     def choose_type_of_search(self):
-        print('try to select search type')
         if self.search_type == 'группа':
             button = self.driver.find_element(By.ID, 'edit-type-currentstudentsgroups')
             button_location = button.location_once_scrolled_into_view
             button.click()
-            time.sleep(1)
         elif self.search_type == 'препод':
             button = self.driver.find_element(By.ID, 'edit-type-prepod')
             button_location = button.location_once_scrolled_into_view
             button.click()
-            time.sleep(1)
         elif self.search_type == 'аудитория':
             button = self.driver.find_element(By.ID, 'edit-type-auditorium')
             button_location = button.location_once_scrolled_into_view
             button.click()
-            time.sleep(1)
-        else:
-            return 'Ошибка'
 
-# Вводит в поле что именно нужно искать и запускает кликает на "Показать расписание"
+
+# Вводит в поле что именно нужно искать и кликает на "Показать расписание"
     def choose_group(self):
-        print('try to write value')
         if self.search_type == 'группа':
             self.driver.find_element(By.ID, 'edit-idgr').send_keys(f'{self.amount}')
             time.sleep(1)
             self.driver.find_element(By.ID, 'edit-idgr').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
             obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
-            time.sleep(1)
         elif self.search_type == 'препод':
             self.driver.find_element(By.ID, 'edit-idprep').send_keys(f'{self.amount}')
             time.sleep(1)
             self.driver.find_element(By.ID, 'edit-idprep').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
             obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
-            time.sleep(1)
         elif self.search_type == 'аудитория':
             self.driver.find_element(By.ID, 'edit-idaud').send_keys(f'{self.amount}')
             time.sleep(1)
             self.driver.find_element(By.ID, 'edit-idaud').send_keys(Keys.ARROW_DOWN + Keys.ENTER)
             obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
-            time.sleep(1)
 
 # Зумит сайт на 72% и делает скрин
 # Из-за зума качество на выходе мусор, но если не зумить, таблица не влезет. Дилемма...
     def get_screenshot_of_table(self):
-        print('try to do a screenshot')
         self.driver.execute_script("document.body.style.zoom='72%'")
-        time.sleep(0.2)
         element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'table')))
         self.table = self.driver.find_element(By.TAG_NAME, 'table')
         scroll = self.table.location_once_scrolled_into_view
@@ -133,7 +122,6 @@ class Parser():
 # Работает только на текущий день. Ищет координаты начала таблицы по тексту ячейки "нед" и нужные поля по цвету фона
 # Соответственно записывает их координаты и передаёт дальше
     def select_area(self):
-        print('try to select area')
         rows = self.table.find_elements(By.TAG_NAME, 'tr')
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
@@ -163,7 +151,6 @@ class Parser():
 
 # То же самое, что и прошлый метод, только ищет не по цвету, а по тексту ячеек
     def select_area_on_any_day(self, week, weekday):
-        print('try to select area')
         rows = self.table.find_elements(By.TAG_NAME, 'tr')
         for row in rows:
             cells = row.find_elements(By.TAG_NAME, 'td')
@@ -191,7 +178,6 @@ class Parser():
 
 # Открывает скрин, режет его, склеивает время и само расписание. Сохраняет как res<TelegramID>.png
     def create_resoult(self):
-        print('try to create your resoult photo')
         x0 = self.sizes[0]
         y0 = self.sizes[1]
         x1 = self.sizes[2]
@@ -221,8 +207,8 @@ class Parser():
     def close_driver(self):
         self.driver.close()
         self.driver.quit()
-        print('Successful!\n\n')
 
+# Удаляет временные файлы
     def delete_cache(self):
         os.remove(f'{path_to_project}/schedule/Data/res{self.tg_id}.png')
         os.remove(f'{path_to_project}/schedule/Data/sch{self.tg_id}.png')
