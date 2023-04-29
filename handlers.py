@@ -42,9 +42,9 @@ async def schedule(message: Message, state: FSMContext):
             await bot.delete_message(chat_id=message.chat.id, message_id=menu_message_id)
         #Возвращение инлайн меню с выбором
         await message.answer(reply_markup=choice, text='Расписание по')
-
+    #Настройки ради прикола
     if message.text == '⚙️Настройки':
-        await message.answer('Лучше не лезь сюда, тут все-равно ничего нету!)')
+        await message.answer('Лучше не лезь сюда, тут все-равно ничего нет!)')
 
 
 # Инлайн кнопка для аудитории
@@ -211,7 +211,7 @@ async def load_amount(message: Message, state: FSMContext):
     # Вычисляем, если переменные week и weekday возвращают None, вызываем парсер для сегодняшнего дня,
     # иначе парсер для любого дня
     if week is None and weekday is None:
-        if datetime.date.today().weekday() == 6:
+        if datetime.date.today().weekday() == 6 and data.get('all') != 'full':
             await message.answer(text='Сегодня воскресенье, какие пары🤨, иди поспи😊')
         else:
             if data.get('all') == 'full':
@@ -257,6 +257,6 @@ async def load_amount(message: Message, state: FSMContext):
             schedule_any_day.close_driver()
         else:
             await bot.send_message(chat_id=message.from_user.id, text='Ничего не найдено😅'
-                                                                      '\nПроверьте правильность введенных данных🔎.'
+                                                                      '\nПроверьте правильность введенных данных 🔎.'
                                                                       '\nНу либо сайт хима упал 😆🫡')
             await message.answer('Выберите действие:', reply_markup=menu)
