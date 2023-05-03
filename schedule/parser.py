@@ -10,7 +10,7 @@ from PIL import Image
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config import path_to_driver
 from config import path_to_project
-from config import binary_path
+# from config import binary_path
 
 
 class Parser():
@@ -110,12 +110,13 @@ class Parser():
             obj = self.driver.find_element(By.ID, 'autocomplete')
             self.driver.find_element(By.CLASS_NAME, 'ajax-processed').click()
 
-# Зумит сайт на 72% и делает скрин
-# Из-за зума качество на выходе мусор, но если не зумить, таблица не влезет. Дилемма...
+# Ищет таблицу и меняет размер окна под таблицу. Затем делает её скрин
     def get_screenshot_of_table(self):
-        self.driver.execute_script("document.body.style.zoom='72%'")
         element = WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'table')))
         self.table = self.driver.find_element(By.TAG_NAME, 'table')
+        sizes = self.table.size
+        # Если не добавить 500 к высоте, он не хочет брать всё таблицу, почему не знаю
+        self.driver.set_window_size(sizes['width'], sizes['height']+500)
         scroll = self.table.location_once_scrolled_into_view
         screenshot = self.table.screenshot(f'{path_to_project}/schedule/Data/sch{self.tg_id}.png')
 
@@ -188,12 +189,12 @@ class Parser():
         time_x2 = self.sizes[7]
         image = Image.open(f"{path_to_project}/schedule/Data/sch{self.tg_id}.png").convert('RGBA')
         screenshot_loc = self.table.location
-        x1 = int((x1 - 45) * 0.72)
-        x2 = int((x2 - 45) * 0.72)
-        y1 = int((y1 - screenshot_loc['y'])*0.72)
-        y2 = int((y2 - screenshot_loc['y'])*0.72)
-        time_x1 = int((time_x1 - 45) * 0.72)
-        time_x2 = int((time_x2 - 45) * 0.72)
+        x1 = int((x1 - x0))
+        x2 = int((x2 - x0))
+        y1 = int((y1 - screenshot_loc['y']))
+        y2 = int((y2 - screenshot_loc['y']))
+        time_x1 = int((time_x1 - x0) + 1) # +1 нужен чтобы не терять линию разделения
+        time_x2 = int((time_x2 - x0) + 1) # +1 нужен чтобы не терять линию разделения
         cropped_image = image.crop((x1, y1, x2, y2))
         cropped_image_time = image.crop((time_x1, y1, time_x2, y2))
         image_width = cropped_image_time.width + cropped_image.width
@@ -212,3 +213,5 @@ class Parser():
     def delete_cache(self):
         os.remove(f'{path_to_project}/schedule/Data/res{self.tg_id}.png')
         os.remove(f'{path_to_project}/schedule/Data/sch{self.tg_id}.png')
+
+
